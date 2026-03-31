@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { use, useState } from "react";
 import {Link, useNavigate} from 'react-router-dom';
+import { register as registerApi } from "../api/authApi";
 function Register(){
 
     const navigate = useNavigate();
@@ -11,6 +12,10 @@ function Register(){
         confirmPassword:''
     })
 
+    const [loading,setLoading] = useState(false);
+    const [error,setError] = useState('');
+    const [success,setSuccess] = useState('');
+
     const handleChange = (e) =>{
         setFormData({
             ...formData,
@@ -18,16 +23,29 @@ function Register(){
         })
     }
 
-    const handleSubmit = (e) =>{
+    const handleSubmit = async (e) =>{
         e.preventDefault();
+        setLoading(true);
+        setError('');
+        setSuccess('');
 
         if(formData.password !== formData.confirmPassword){
             alert('passwords do not match!');
+            setLoading(false);
             return;
         }
 
-        console.log('Register:',formData);
-        navigate('/login')
+        try{
+            const {confirmPassword, ...userData} = formData;
+            const response = await registerApi(userData);
+            if(response.success){
+                setSuccess('Registration successful! Please login.');
+                setTimeout(()=>navigate('/login'),2000);
+            }
+        }catch(err){
+            setError(err.message || 'Registration failed');
+        }
+        
     }
 
     return (
